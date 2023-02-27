@@ -4,7 +4,6 @@ import hashlib
 import boto3
 import botocore
 
-thisset = set()
 
 
 # Function to upload a file to S3
@@ -61,7 +60,6 @@ def restore_directory(bucket_name, prefix, directory_path):
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(bucket_name)
     for object in bucket.objects.filter(Prefix=prefix):
-        print("object.key: ", object.key)
         if object.key[-1] == '/':
             # If the object is a directory, create it locally
             os.makedirs(os.path.join(directory_path, object.key[len(prefix):-1]), exist_ok=True)
@@ -74,7 +72,7 @@ def restore_directory(bucket_name, prefix, directory_path):
 
 def is_duplicate_file(bucket_name, bucket_dir, local_md5, cloud_key, file, location_constraint):
     s3 = boto3.resource('s3')
-    s_3 = boto3.client('s3')
+    s_3 = boto3.client('s3', region_name=location_constraint)
     bucket = s3.Bucket(bucket_name)
     try:
         s_3.head_bucket(Bucket=bucket_name)
@@ -96,9 +94,7 @@ def is_duplicate_file(bucket_name, bucket_dir, local_md5, cloud_key, file, locat
         s3_object_metadata = s_3.head_object(Bucket=bucket_name, Key=cloud_key)
         e_tag = s3_object_metadata['ETag']
 
-        if e_tag[1:-1] == local_md5 and e_tag not in thisset:
-
-            thisset.add(e_tag)
+        if e_tag[1:-1] == local_md5:
             return True
         else:
             print(f'File {file} does not exist in the cloud')
