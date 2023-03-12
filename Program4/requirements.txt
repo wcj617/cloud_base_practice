@@ -1,0 +1,6 @@
+Django
+whitenoise
+azure-storage-blob
+azure-cosmos
+django-dotenv
+
